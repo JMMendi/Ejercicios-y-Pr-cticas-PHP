@@ -1,20 +1,10 @@
 <?php
-$provincias = [
-    'Almería',
-    'Granada',
-    'Sevilla',
-    'Cádiz',
-    'Jaén',
-    'Huelva',
-    'Córdoba',
-    'Málaga'
-];
-$aficiones = [
-    'Evadir Impuestos™',
-    'Ciclismo',
-    'Videojuegos',
-    'Cine'
-];
+// include, include_once, require, require_once -- Los once tienen una carga en el procesador y memoria grande. Mejor no abusar de ellos y evitarlos si se pueden
+// include incluye el archivo y si no puede, sigue ejecutando el php. El require si no lo consigue incluir, para todo el código.
+// Y los once verifican que no haya duplicados del archivo a incluir.
+
+require 'utilidades.php';
+
 ?>
 
 
