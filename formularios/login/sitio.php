@@ -1,4 +1,5 @@
 <?php
+    session_start();
     if (!isset($_SESSION['usuario'])) { // Así, si no hay una sesión iniciada, impides que se entre de manera fraudulenta
         header("Location:login.php");
         die();
