@@ -23,3 +23,14 @@ function pintarErrores(string $nombre) {
         unset($_SESSION[$nombre]);
     }
 }
+
+function validarUsuario(string $email, string $password) : bool {
+    global $usuarios;
+    foreach ($usuarios as $emailUsuario => $datosUsuario) {
+        if ($email == $emailUsuario) {
+            if (password_verify($password, $datosUsuario[0])) // Esta funcion pasa una contraseña y mira si coincide con el hash
+                return true;
+        }
+    }
+    return false;
+}

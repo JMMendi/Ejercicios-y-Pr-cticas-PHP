@@ -1,44 +1,56 @@
 <?php
-    session_start();
-    require "utilidades.php";
-    if (isset($_POST['email'])) {
-        // Si estoy aquí, he enviado el formulario
-        // 1. Recojo y limpio los datos
-        $email = sanearCadenas($_POST['email']);
-        $pass = sanearCadenas($_POST['password']);
+session_start();
+require "utilidades.php";
+if (isset($_POST['email'])) {
+    // Si estoy aquí, he enviado el formulario
+    // 1. Recojo y limpio los datos
+    $email = sanearCadenas($_POST['email']);
+    $pass = sanearCadenas($_POST['password']);
 
-        // 2. Control de Errores y Pintado de ellos
-        $errores=false;
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)){
-            $errores = true;
-            $_SESSION['errEmail'] = "*** Error, debes introducir un email válido. ***";
-        }
-        if (!isLongitudValida($pass, 5, 15)) {
-            $errores = true;
-            $_SESSION['errPass'] = "*** Error, la contraseña debe tener entre 5 y 15 caracteres. ***";
-        }
-        if ($errores) {
-            header("Location: {$_SERVER['PHP_SELF']}"); // Esto carga la página y el die() hace que no se ejecute nada más
-            die();
-        }
-        // Ahora que hemos apsado por esto, procedemos a validar los usuarios
-        foreach ($usuarios as $emailUsuario => $datosUsuario) {
-            if ($email == $emailUsuario) {
-                if (password_verify($pass, $datosUsuario[0])) // Esta funcion pasa una contraseña y mira si coincide con el hash
-                    $_SESSION['usuario'] = $email;
-                    $_SESSION['perfil'] = $datosUsuario[1];
-                    header("Location:sitio.php");
-                    die();
-            } /*else {
+    // 2. Control de Errores y Pintado de ellos
+    $errores = false;
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errores = true;
+        $_SESSION['errEmail'] = "*** Error, debes introducir un email válido. ***";
+    }
+    if (!isLongitudValida($pass, 5, 15)) {
+        $errores = true;
+        $_SESSION['errPass'] = "*** Error, la contraseña debe tener entre 5 y 15 caracteres. ***";
+    }
+    if ($errores) {
+        header("Location: {$_SERVER['PHP_SELF']}"); // Esto carga la página y el die() hace que no se ejecute nada más
+        die();
+    }
+    if (validarUsuario($email, $pass)) {
+        $_SESSION['usuario'] = $email;
+
+        // $_SESSION['perfil'] = $datosUsuario[1]; <---- Esto no puede ser ya que no podemos acceder al array de esta manera
+        // a datosUsuario[1] por usar la función.
+
+        $_SESSION['perfil'] = $usuarios[$email][1]; // <-- En el array usuarios, el email es la clave así que podemos acceder a su array y acceder a su perfil
+
+        header("Location:sitio.php");
+        die();
+    }
+    // Ahora que hemos pasado por esto, procedemos a validar los usuarios
+    // foreach ($usuarios as $emailUsuario => $datosUsuario) {
+    //     if ($email == $emailUsuario) {
+    //         if (password_verify($pass, $datosUsuario[0])) // Esta funcion pasa una contraseña y mira si coincide con el hash
+    //             $_SESSION['usuario'] = $email;
+    //             $_SESSION['perfil'] = $datosUsuario[1];
+    //             header("Location:sitio.php");
+    //             die();
+    /*} else {
                 $_SESSION['errPassword'] = "*** Error, la contraseña para ese usuario no es válido. ***";
             } */
-        }
-        // Si llego hasta aquí es porque no hay un login válido
-        $_SESSION['errLogin'] = "*** Error, email o password incorrectos. ***";
-        header("Location: {$_SERVER['PHP_SELF']}");
-        die();
-    }    
-    
+    $_SESSION['errLogin'] = "*** Error, email o password incorrectos. ***";
+    header("Location: {$_SERVER['PHP_SELF']}");
+    die();
+}
+// Si llego hasta aquí es porque no hay un login válido
+
+//}    
+
 
 
 ?>
