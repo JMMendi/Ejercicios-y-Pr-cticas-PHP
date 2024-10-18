@@ -12,15 +12,39 @@
         $errores = false;
 
         if(!isEmailValido($email)) {
-            $errores = true;
+            $errores = true; // Aquí deberiamos hacer lo del header y el die para evitar que se suban imágenes aunque el email sea invalido, pero como
+            // estamos aprendiendo, esto lo ignoramos.
         }
 
         $_SESSION['rutaImagen']='/img/noimage.png';
+
+        if(is_uploaded_file($_FILES['foto']['tmp_name'])) {
+            // Entro aquí si el usuario ha subido un archivo
+            // Comprobamos que sea un archivo de imagen y no exceda los 2MB
+            if(!isImagenValida($_FILES['foto']['type'], $_FILES['foto']['size'])) {
+                // Aquí comprobamos el tipo (el var_dump de foto puede ser util. Recuerda que es un array) y el tamaño
+                $errores = true;
+            } else {
+                // Si el archivo es correcto en tamaño y tipo llego hasta aquí
+                // Le ponemos un nombre único al archivo
+                $nombreArchivo = "./img/".uniqid()."_".$_FILES['foto']['name']; // Generamos un nombre único con el uniquid() para evitar que se machaquen
+                if (move_uploaded_file($_FILES['foto']['tmp_name'], $nombreArchivo)){ // Comprobamos si lo hemos podido mover a la ruta definida en $nombreArchivos
+                    $_SESSION['rutaImagen'] = $nombreArchivo; // recuerdas la línea 19? lo machacamos. Línea 18 es si no sube uno poner un default. Si sube uno -
+                    // - lo machacamos y ponemos el nuevo que ha subido
+                } else {
+                    $errores = true;
+                    $_SESSION['errImagen'] = "*** Error, no se pudo mover el archivo a la carpeta de destino. ***";
+                }
+            }
+        }
 
         if($errores) {
             header("Location:".$_SERVER['PHP_SELF']); // PHP_SELF ?
             die(); // exit();
         }
+        // Si estoy aquí es porque todo ha ido bien, cargamos perfil.php para ver la imagen y el mail
+        $_SESSION['email'] = $email;
+        header("Location:perfil.php");
     }
 ?>
 
@@ -53,6 +77,7 @@
                 </div>
                 <div>
                     <img src="img/default.jpg" id="campoImg" class="w-full h-92 border-2 object-center object-cover" />
+                    <?php pintarErrores('errImagen') ?>
                 </div>
             </div>
             <div class="mt-4 flex justify-between">
