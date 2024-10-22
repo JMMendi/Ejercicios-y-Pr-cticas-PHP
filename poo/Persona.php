@@ -46,4 +46,9 @@ class Persona{
 
         return $this;
     }
+
+    public function __toString() : string
+    {
+        return "Nombre: {$this->getNombre()}<br>En la provincia: {$this->getProvincia()}";        
+    }
 }

@@ -13,7 +13,9 @@ class Empleado extends Persona {
     )
     {
         // ¿Recuerdas el super de Java? Pues en PHP es parent. 
-        // parent
+        parent::__construct($nombre, $provincia);
+        $this -> puesto = $puesto;
+        $this -> oficina = $oficina;
     }
     
 
@@ -51,5 +53,10 @@ class Empleado extends Persona {
         $this->oficina = $oficina;
 
         return $this;
+    }
+
+    public function __toString() : string
+    {
+        return parent::__toString()."<br>En la oficina: {$this->getOficina()}<br>En el puesto: {$this->getPuesto()}<br>";
     }
 }
