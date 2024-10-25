@@ -1,0 +1,19 @@
+{
+    "name": "jmmendi/apipelis",
+    "description": "Api para movie database",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Src\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "JMMendi",
+            "email": "mendizabaly@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^7.9"
+    }
+}
