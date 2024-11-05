@@ -1,0 +1,123 @@
+<?php
+
+    if (!isset($_GET['id'])) {
+        header("Location:articulos.php");
+        die();
+    }
+
+    $id = (int) $_GET['id'];
+    if ($id <= 0) {
+        header("Location:articulos.php");
+        die();
+    }
+
+    use App\Articulo;
+    use App\Utils;
+
+    session_start();
+    require __DIR__."/../vendor/autoload.php";
+
+    $articulo = Articulo::getArticuloById($id);
+    if(!$articulo) {
+        header("Location:articulos.php");
+        die();
+    }
+
+    if(isset($_POST['nombre'])) {
+        // Recojo y saneo los datos
+        $nombre = Utils::sanearCadenas($_POST['nombre']);
+        $descripcion = Utils::sanearCadenas($_POST['descripcion']);
+        $precio = (float) Utils::sanearCadenas($_POST['precio']);
+        $stock = (int) Utils::sanearCadenas($_POST['stock']);
+        
+        // Empiezo las validaciones
+        $errores = false;
+        if (!Utils::establecerLimite("nombre", $nombre, 3, 100)) {
+            $errores = true;
+        } else {
+            if (Utils::existeNombre($nombre, $id)) {
+                $errores = true;
+            }
+        }
+        if (!Utils::establecerLimite("descripcion", $descripcion, 10, 250)) {
+            $errores = true;
+        }
+        if (!Utils::isCampoNumberOk("precio", $precio, 1, 9999.99)) {
+            $errores = true;
+        }
+        if (!Utils::isCampoNumberOk("stock", $stock, 1, 150)) {
+            $errores = true;
+        }
+        
+        if ($errores) {
+            header("Location: {$_SERVER['PHP_SELF']}?id=$id");
+            die();
+        }
+        // Si estamos aquí, se han pasado las validaciones, guardamos el articulo
+        (new Articulo) 
+        ->setNombre($nombre)
+        ->setDescripcion($descripcion)
+        ->setPrecio($precio)
+        ->setStock($stock)
+        ->update($id);
+
+        $_SESSION['mensaje'] = "Se ha actualizado el artículo.";
+        header("Location:articulos.php");
+
+    }
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Articulos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body class="bg-teal-200 p-4">
+    <h3 class="py-2 text-center text-xl">Editar Artículo</h3>
+    <div class="px-24 py-12 mx-auto w-1/2 border-4 border-black rounded-2xl shadow-2xl">
+        <form method="POST" action="<?= $_SERVER['PHP_SELF']."?id=$id"; ?>"> <!-- Aquí cuidado, hay que cambiar el action porque si no hay id, no puede volver a esta misma página -->
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="text" name="nombre" id="nombre" value="<?= $articulo->getNombre(); ?>" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" />
+                <label for="nombre" class="peer-focus:font-medium absolute text-sm text-gray-700 dark:text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Nombre ...</label>
+                <?php Utils::pintarErrores('err_nombre') ?>                
+            </div>
+                            
+            <div class="relative z-0 w-full mb-8 group">
+                <textarea name="descripcion" id="descripcion" rows=5 class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" "><?= $articulo->getDescripcion(); ?></textarea>
+                <label for="descripcion" class="peer-focus:font-medium absolute text-sm text-gray-700 dark:text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Descripción ...</label>
+                <?php Utils::pintarErrores('err_descripcion') ?>                
+            </div>
+
+            <div class="grid md:grid-cols-2 md:gap-6">
+                <div class="relative z-0 w-full mb-8 group">
+                    <input type="number" name="precio" id="precio" value="<?= $articulo->getPrecio(); ?>" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " step="0.01" max="9999,99" min="1,00" />
+                    <label for="precio" class="peer-focus:font-medium absolute text-sm text-gray-700 dark:text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Precio(€)...</label>
+                    <?php Utils::pintarErrores('err_precio') ?>                    
+                </div>
+
+                <div class="relative z-0 w-full mb-8 group">
+                    <input type="number" name="stock" id="stock" value="<?= $articulo->getStock(); ?>" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " step="1" min='1' />
+                    <label for="stock" class="peer-focus:font-medium absolute text-sm text-gray-700 dark:text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Stock ...</label>
+                    <?php Utils::pintarErrores('err_stock') ?>                    
+                </div>
+
+            </div>
+            <div class="flex flex-row-reverse mb-2">
+                <button type="submit" class="font-bold text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <i class="fas fa-edit mr-2"></i>EDITAR
+                </button>
+                <a href="articulos.php" class="mr-2 font-bold text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <i class="fas fa-home mr-2"></i>VOLVER
+                </a>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>
